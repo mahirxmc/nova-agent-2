@@ -103,17 +103,6 @@ export function ChatInterface({ onShowAuth }: ChatInterfaceProps) {
         content: msg.content,
       }));
 
-      // Call chat-stream edge function
-      const { data, error } = await supabase.functions.invoke('chat-stream', {
-        body: {
-          messages: chatMessages,
-          agentId: selectedAgent?.id,
-          conversationId,
-        },
-      });
-
-      if (error) throw error;
-
       // Create assistant message
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -124,42 +113,71 @@ export function ChatInterface({ onShowAuth }: ChatInterfaceProps) {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Parse streaming response
-      const reader = data.getReader();
+      // Get the current session to include auth headers
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Make direct fetch request to edge function for streaming
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          messages: chatMessages,
+          agentId: selectedAgent?.id,
+          conversationId,
+          userId: user?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let fullResponse = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataString = line.slice(6);
 
-            try {
-              const parsed = JSON.parse(data);
+              try {
+                const parsed = JSON.parse(dataString);
 
-              if (parsed.done) {
-                break;
+                if (parsed.done) {
+                  break;
+                }
+
+                if (parsed.content) {
+                  fullResponse += parsed.content;
+                  setMessages((prev) => {
+                    const newMessages = [...prev];
+                    const lastMessage = newMessages[newMessages.length - 1];
+                    if (lastMessage.role === 'assistant') {
+                      lastMessage.content = fullResponse;
+                    }
+                    return newMessages;
+                  });
+                }
+              } catch (e) {
+                // Skip invalid JSON lines
+                continue;
               }
-
-              if (parsed.content) {
-                fullResponse += parsed.content;
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  const lastMessage = newMessages[newMessages.length - 1];
-                  if (lastMessage.role === 'assistant') {
-                    lastMessage.content = fullResponse;
-                  }
-                  return newMessages;
-                });
-              }
-            } catch (e) {
-              continue;
             }
           }
         }
