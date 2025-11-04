@@ -91,7 +91,7 @@ export function ChatInterface({ onShowAuth }: ChatInterfaceProps) {
     setInputMessage('');
     setIsStreaming(true);
 
-    // Save user message
+    // Save user message (only if authenticated)
     if (user && conversationId) {
       await saveMessage('user', userMessage.content);
     }
@@ -113,10 +113,16 @@ export function ChatInterface({ onShowAuth }: ChatInterfaceProps) {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Get the current session to include auth headers
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('No active session');
+      // Prepare request data
+      const requestData: any = {
+        messages: chatMessages,
+        agentId: selectedAgent?.id,
+        conversationId,
+      };
+
+      // Add userId if authenticated
+      if (user) {
+        requestData.userId = user.id;
       }
 
       // Make direct fetch request to edge function for streaming
@@ -124,15 +130,9 @@ export function ChatInterface({ onShowAuth }: ChatInterfaceProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({
-          messages: chatMessages,
-          agentId: selectedAgent?.id,
-          conversationId,
-          userId: user?.id,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
@@ -183,7 +183,7 @@ export function ChatInterface({ onShowAuth }: ChatInterfaceProps) {
         }
       }
 
-      // Save assistant message
+      // Save assistant message (only if authenticated)
       if (user && conversationId && fullResponse) {
         await saveMessage('assistant', fullResponse);
       }
