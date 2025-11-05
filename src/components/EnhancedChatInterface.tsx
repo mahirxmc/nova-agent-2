@@ -290,7 +290,7 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
       if (reader) {
         // Set up a stream timeout
         const streamTimeoutId = setTimeout(() => {
-          console.warn('Stream timeout - forcing completion');
+          console.warn('Stream timeout - forcing completion. Current response:', fullResponse);
           setMessages((prev) => 
             prev.map(msg => 
               msg.id === assistantMessage.id 
@@ -309,6 +309,7 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
+              console.log('Stream ended normally. Final response:', fullResponse);
               // Ensure message is marked as complete when stream ends
               clearTimeout(streamTimeoutId);
               setMessages((prev) => 
@@ -337,8 +338,10 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
 
               try {
                 const parsed = JSON.parse(dataString);
+                console.log('SSE Parse Debug:', { dataString, parsed, fullResponseLength: fullResponse.length });
                 
                 if (parsed.done) {
+                  console.log('Stream Done Signal Received:', fullResponse);
                   // Mark message as complete and stop streaming
                   clearTimeout(streamTimeoutId);
                   setMessages((prev) => 
@@ -351,6 +354,7 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
                   reader.releaseLock();
                   return;
                 } else if (parsed.content) {
+                  console.log('Content chunk received:', parsed.content);
                   fullResponse += parsed.content;
                   // Update message content immediately
                   setMessages((prev) => 
