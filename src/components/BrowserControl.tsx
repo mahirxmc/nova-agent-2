@@ -11,7 +11,6 @@ import {
   RotateCcw, 
   Settings,
   Search,
-  MousePointer,
   Download,
   Upload,
   Camera,
