@@ -1,12 +1,16 @@
 services:
   - type: web
-    name: ai-agent-platform
+    name: nova-agent-github
     runtime: static
     buildCommand: pnpm install && pnpm run build
     staticPublishPath: ./dist
     envVars:
       - key: NODE_VERSION
         value: 20
+      - key: VITE_SUPABASE_URL
+        value: https://pnkjdhyvyxkkrfkhnfkz.supabase.co
+      - key: VITE_SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBua2pkaHl2eXhra3Jma2huZmt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxNTUzNjMsImV4cCI6MjA3NzczMTM2M30.N9DjcQDL1n7XbciaBfjtQsG5pi6mZWFKNXS8Lj2GJiM
     headers:
       - path: /*
         name: X-Frame-Options
