@@ -325,15 +325,17 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
             const chunk = decoder.decode(value, { stream: true });
             buffer += chunk;
             
-            // Process complete lines
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
+            // Process complete SSE events (end with \n\n)
+            const events = buffer.split('\n\n');
+            // Keep the last incomplete event in buffer
+            buffer = events.pop() || '';
             
-            for (const line of lines) {
-              const trimmedLine = line.trim();
-              if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+            for (const event of events) {
+              const trimmedEvent = event.trim();
+              if (!trimmedEvent || !trimmedEvent.startsWith('data: ')) continue;
               
-              const dataString = trimmedLine.slice(6).trim();
+              // Extract data part after "data: "
+              const dataString = trimmedEvent.replace(/^data:\s*/, '').trim();
               if (!dataString || dataString === '{}') continue;
 
               try {
