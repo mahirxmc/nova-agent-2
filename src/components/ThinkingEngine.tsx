@@ -119,7 +119,7 @@ export function ThinkingEngine({ isVisible, currentTask, onThinkingComplete, mod
         id: `${Date.now()}-${i}`,
         type: stepType,
         content,
-        confidence: Math.floor(Math.random() * 20) + 70, // 70-90%
+        confidence: Math.floor(Math.random() * 15) + 85, // 85-100%
         duration: pattern.stepDuration,
         status: 'thinking',
         reasoning: `Applying ${thinkingMode} reasoning for: ${content}`,
