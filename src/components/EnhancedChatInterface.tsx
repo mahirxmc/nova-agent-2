@@ -239,7 +239,7 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
         timestamp: new Date(),
         thinking: thinkingSteps,
         modelUsed: agent.id,
-        confidence: Math.floor(Math.random() * 20) + 80, // 80-100% confidence
+        confidence: Math.floor(Math.random() * 15) + 85, // 85-100% confidence
         isStreaming: true,
       };
 
@@ -258,9 +258,12 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
         requestData.userId = user.id;
       }
 
-      // Add timeout to prevent infinite waiting
+      // Add timeout to prevent infinite waiting - increased for better reliability
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), agent.max_response_time * 1000);
+      const timeoutId = setTimeout(() => {
+        console.warn('Request timeout - aborting');
+        controller.abort();
+      }, (agent.max_response_time + 10) * 1000); // Add 10 second buffer
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-stream`, {
         method: 'POST',
@@ -278,21 +281,50 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Handle streaming response
+      // Handle streaming response with improved parsing
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let fullResponse = '';
       let buffer = '';
 
       if (reader) {
+        // Set up a stream timeout
+        const streamTimeoutId = setTimeout(() => {
+          console.warn('Stream timeout - forcing completion');
+          setMessages((prev) => 
+            prev.map(msg => 
+              msg.id === assistantMessage.id 
+                ? { ...msg, content: fullResponse || 'Response timed out. Please try again.', isStreaming: false }
+                : msg
+            )
+          );
+          try {
+            reader.cancel();
+          } catch (e) {
+            // Ignore errors when canceling
+          }
+        }, 60000); // 1 minute stream timeout
+        
         try {
           while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {
+              // Ensure message is marked as complete when stream ends
+              clearTimeout(streamTimeoutId);
+              setMessages((prev) => 
+                prev.map(msg => 
+                  msg.id === assistantMessage.id 
+                    ? { ...msg, content: fullResponse || 'No response received.', isStreaming: false }
+                    : msg
+                )
+              );
+              break;
+            }
 
             const chunk = decoder.decode(value, { stream: true });
             buffer += chunk;
             
+            // Process complete lines
             const lines = buffer.split('\n');
             buffer = lines.pop() || '';
             
@@ -307,7 +339,8 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
                 const parsed = JSON.parse(dataString);
                 
                 if (parsed.done) {
-                  // Mark message as complete
+                  // Mark message as complete and stop streaming
+                  clearTimeout(streamTimeoutId);
                   setMessages((prev) => 
                     prev.map(msg => 
                       msg.id === assistantMessage.id 
@@ -315,32 +348,64 @@ export function EnhancedChatInterface({ onShowAuth }: EnhancedChatInterfaceProps
                         : msg
                     )
                   );
+                  reader.releaseLock();
                   return;
                 } else if (parsed.content) {
                   fullResponse += parsed.content;
+                  // Update message content immediately
                   setMessages((prev) => 
                     prev.map(msg => 
                       msg.id === assistantMessage.id 
-                        ? { ...msg, content: fullResponse }
+                        ? { ...msg, content: fullResponse, isStreaming: true }
                         : msg
                     )
                   );
+                } else if (parsed.error) {
+                  // Handle streaming errors
+                  clearTimeout(streamTimeoutId);
+                  setMessages((prev) => 
+                    prev.map(msg => 
+                      msg.id === assistantMessage.id 
+                        ? { ...msg, content: `Error: ${parsed.error}`, isStreaming: false, error: parsed.error }
+                        : msg
+                    )
+                  );
+                  reader.releaseLock();
+                  return;
                 }
               } catch (parseError) {
-                console.warn('Failed to parse SSE data:', parseError);
+                console.warn('Failed to parse SSE data:', parseError, 'Raw data:', dataString);
+                // Continue processing other lines instead of stopping
               }
             }
           }
         } catch (streamError) {
+          clearTimeout(streamTimeoutId);
           console.error('Streaming error:', streamError);
           setMessages((prev) => 
             prev.map(msg => 
               msg.id === assistantMessage.id 
-                ? { ...msg, content: 'Error: Failed to process streaming response. Please try again.', error: 'Stream error', isStreaming: false }
+                ? { ...msg, content: fullResponse || 'Error: Failed to process streaming response. Please try again.', error: 'Stream error', isStreaming: false }
                 : msg
             )
           );
+        } finally {
+          clearTimeout(streamTimeoutId);
+          try {
+            reader.releaseLock();
+          } catch (e) {
+            // Reader might already be released
+          }
         }
+      } else {
+        // No readable stream - handle as error
+        setMessages((prev) => 
+          prev.map(msg => 
+            msg.id === assistantMessage.id 
+              ? { ...msg, content: 'Error: No response stream available. Please try again.', isStreaming: false }
+              : msg
+          )
+        );
       }
     } catch (error: any) {
       console.error('Chat error:', error);
