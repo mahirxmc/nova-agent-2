@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ChatInterface } from '@/components/ChatInterface';
+import { ChatInterface } from '@/components/EnhancedChatInterface';
 import { AuthModal } from '@/components/AuthModal';
 
 function App() {
