@@ -125,7 +125,11 @@ export function ChatInterface({ onShowAuth }: ChatInterfaceProps) {
         requestData.userId = user.id;
       }
 
-      // Make direct fetch request to edge function for streaming
+      // ✅ Added 30-second timeout to prevent infinite waiting
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      // ✅ Direct fetch for SSE streaming
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-stream`, {
         method: 'POST',
         headers: {
@@ -133,53 +137,70 @@ export function ChatInterface({ onShowAuth }: ChatInterfaceProps) {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify(requestData),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Handle streaming response
+      // ✅ Handle streaming response with improved SSE parsing
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let fullResponse = '';
+      let buffer = '';
 
       if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const dataString = line.slice(6);
+            const chunk = decoder.decode(value, { stream: true });
+            buffer += chunk;
+            
+            // Process complete lines
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || ''; // Keep incomplete line in buffer
+            
+            for (const line of lines) {
+              const trimmedLine = line.trim();
+              if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+              
+              const dataString = trimmedLine.slice(6).trim();
+              if (!dataString || dataString === '{}') continue;
 
               try {
                 const parsed = JSON.parse(dataString);
-
+                
                 if (parsed.done) {
-                  break;
-                }
-
-                if (parsed.content) {
+                  return; // Exit streaming loop
+                } else if (parsed.content) {
                   fullResponse += parsed.content;
-                  setMessages((prev) => {
-                    const newMessages = [...prev];
-                    const lastMessage = newMessages[newMessages.length - 1];
-                    if (lastMessage.role === 'assistant') {
-                      lastMessage.content = fullResponse;
-                    }
-                    return newMessages;
-                  });
+                  setMessages((prev) => 
+                    prev.map(msg => 
+                      msg.id === assistantMessage.id 
+                        ? { ...msg, content: fullResponse }
+                        : msg
+                    )
+                  );
                 }
-              } catch (e) {
-                // Skip invalid JSON lines
-                continue;
+              } catch (parseError) {
+                console.warn('Failed to parse SSE data:', parseError);
               }
             }
           }
+        } catch (streamError) {
+          console.error('Streaming error:', streamError);
+          setMessages((prev) => 
+            prev.map(msg => 
+              msg.id === assistantMessage.id 
+                ? { ...msg, content: 'Error: Failed to process streaming response. Please try again.' }
+                : msg
+            )
+          );
         }
       }
 
