@@ -11,7 +11,7 @@ import {
   RotateCcw, 
   Settings,
   Search,
-  Click,
+  MousePointer,
   Download,
   Upload,
   Camera,
@@ -280,7 +280,7 @@ export function BrowserControl({ isVisible, onClose, onTaskComplete }: BrowserCo
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-orange-100 rounded-lg">
                         {task.type === 'navigate' && <Globe className="w-4 h-4 text-orange-600" />}
-                        {task.type === 'click' && <Click className="w-4 h-4 text-orange-600" />}
+                        {task.type === 'click' && <MousePointer className="w-4 h-4 text-orange-600" />}
                         {task.type === 'type' && <Keyboard className="w-4 h-4 text-orange-600" />}
                         {task.type === 'screenshot' && <Camera className="w-4 h-4 text-orange-600" />}
                         {task.type === 'extract' && <Search className="w-4 h-4 text-orange-600" />}

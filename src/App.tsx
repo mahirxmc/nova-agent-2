@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ChatInterface } from '@/components/EnhancedChatInterface';
+import { EnhancedChatInterface } from '@/components/EnhancedChatInterface';
 import { AuthModal } from '@/components/AuthModal';
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <ChatInterface onShowAuth={() => setShowAuthModal(true)} />
+        <EnhancedChatInterface onShowAuth={() => setShowAuthModal(true)} />
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </AuthProvider>
     </ErrorBoundary>
