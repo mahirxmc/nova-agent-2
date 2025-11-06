@@ -817,7 +817,7 @@
 **/.cache/
 **/cache/
 **/build/
-**/dist/
+# **/dist/  - ALLOWED FOR RENDER DEPLOYMENT
 **/out/
 **/target/
 **/.next/
