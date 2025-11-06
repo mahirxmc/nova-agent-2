@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { EnhancedChatInterface } from '@/components/EnhancedChatInterface';
+import { NovaAgentPro } from '@/components/NovaAgentPro';
 import { AuthModal } from '@/components/AuthModal';
 
 function App() {
@@ -10,7 +10,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <EnhancedChatInterface onShowAuth={() => setShowAuthModal(true)} />
+        <NovaAgentPro onShowAuth={() => setShowAuthModal(true)} />
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </AuthProvider>
     </ErrorBoundary>
