@@ -18,5 +18,16 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        // Force different output name to invalidate cache
+        entryFileNames: 'assets/nova-agent-[name]-[hash].js',
+        chunkFileNames: 'assets/nova-agent-[name]-[hash].js',
+        assetFileNames: 'assets/nova-agent-[name]-[hash].[ext]'
+      }
+    }
+  }
 })
 
