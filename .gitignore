@@ -817,7 +817,8 @@
 **/.cache/
 **/cache/
 **/build/
-**/dist/
+# **/dist/  - ALLOWED: Need dist folder for deployment
+!**/dist/  # IMPORTANT: Allow dist folder for deploy
 **/out/
 **/target/
 **/.next/
