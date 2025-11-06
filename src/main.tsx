@@ -1,4 +1,4 @@
-// CRITICAL CACHE INVALIDATION v3 - SSE FIX ACTIVE
+// CRITICAL CACHE INVALIDATION v4 - FINAL SSE FIX DEPLOY
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
