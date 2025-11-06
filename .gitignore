@@ -817,7 +817,7 @@
 **/.cache/
 **/cache/
 **/build/
-# **/dist/
+**/dist/
 **/out/
 **/target/
 **/.next/
