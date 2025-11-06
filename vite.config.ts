@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 import sourceIdentifierPlugin from 'vite-plugin-source-identifier'
 
+const buildTimestamp = Date.now()
 const isProd = process.env.BUILD_MODE === 'prod'
 export default defineConfig({
   plugins: [
@@ -22,10 +23,10 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        // Force different output name to invalidate cache
-        entryFileNames: 'assets/nova-agent-[name]-[hash].js',
-        chunkFileNames: 'assets/nova-agent-[name]-[hash].js',
-        assetFileNames: 'assets/nova-agent-[name]-[hash].[ext]'
+        // AGGRESSIVE cache busting with timestamp
+        entryFileNames: `assets/nova-agent-[name]-${buildTimestamp}.[hash].js`,
+        chunkFileNames: `assets/nova-agent-[name]-${buildTimestamp}.[hash].js`,
+        assetFileNames: `assets/nova-agent-[name]-${buildTimestamp}.[hash].[ext]`
       }
     }
   }
