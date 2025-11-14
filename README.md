@@ -1,212 +1,183 @@
-# 🚀 Nova Agent - Professional AI Chat Platform
+# Supabase CLI
 
-A sophisticated AI chat platform with 5 specialized agents powered by GroqCloud's Llama 3.3 70B model.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## ✨ Features
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-### 🤖 5 Specialized AI Agents
-- **Nova Assistant** 🤖 - General helpful AI assistant
-- **Nova Researcher** 🔍 - Expert researcher with detailed analysis
-- **Nova Developer** 💻 - Expert programmer and code solutions
-- **Nova Navigator** 🧭 - Information organization and navigation
-- **Nova Creator** 🎨 - Creative content and idea generation
+This repository contains all the functionality for Supabase CLI.
 
-### ⚡ Advanced Features
-- **Real-time Streaming**: Instant AI responses with live typing
-- **Professional UI**: ChatGPT/Manus-style interface
-- **GroqCloud Powered**: Ultra-fast Llama 3.3 70B model
-- **Edge Runtime**: Optimized performance with Next.js 15
-- **Mobile Responsive**: Works perfectly on all devices
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-## 🚀 Quick Start
+## Getting started
 
-### Prerequisites
-- Node.js 18+ 
-- GroqCloud API key
+### Install the CLI
 
-### Installation
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd nova-agent
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your API keys
-
-# Run development server
-npm run dev
+npm i supabase --save-dev
 ```
 
-### Environment Variables
+To install the beta release channel:
+
 ```bash
-# Required
-GROQ_API_KEY=your_groqcloud_api_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
-
-# Optional (for future features)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+npm i supabase@beta --save-dev
 ```
 
-## 🌐 Deployment
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-### Render Deployment
-1. Push to GitHub
-2. Create new Web Service on Render
-3. Set environment variables
-4. Deploy with `npm run build` and `npm start`
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-[See complete deployment guide](./DEPLOYMENT_GUIDE.md)
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-## 📊 Performance
+<details>
+  <summary><b>macOS</b></summary>
 
-### Expected Metrics
-- **Response Time**: 1-3 seconds
-- **First Load**: < 2 seconds
-- **Uptime**: 99.9%+
-- **Concurrent Users**: 100+ (free tier)
+  Available via [Homebrew](https://brew.sh). To install:
 
-### Optimization Features
-- Edge runtime for API routes
-- Streaming responses
-- Optimized bundle size
-- Efficient caching
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-## 🛠️ Technology Stack
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-### Frontend
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Lucide React** - Icons
-- **Framer Motion** - Animations
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-### Backend
-- **Next.js API Routes** - Edge runtime
-- **GroqCloud API** - AI model
-- **Streaming** - Real-time responses
+<details>
+  <summary><b>Windows</b></summary>
 
-### Infrastructure
-- **Render** - Hosting (recommended)
-- **Vercel** - Alternative hosting
-- **GitHub** - Source control
+  Available via [Scoop](https://scoop.sh). To install:
 
-## 🧪 Testing
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
-### Local Testing
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
 ```bash
-# Test API endpoint
-curl -X POST http://localhost:3000/api/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "messages": [{"role": "user", "content": "Hello!"}],
-    "agent": "nova-assistant"
-  }'
+supabase bootstrap
 ```
 
-### Test Cases
-- [ ] All 5 agents respond correctly
-- [ ] Streaming works smoothly
-- [ ] Mobile responsive design
-- [ ] Error handling works
-- [ ] Performance benchmarks
+Or using npx:
 
-## 🔧 Configuration
-
-### Agent Customization
-Edit agent prompts in `src/app/api/chat/route.ts`:
-
-```typescript
-const agentPrompts = {
-  'nova-assistant': 'Your custom prompt here...',
-  'researcher': 'Your custom prompt here...',
-  // ... other agents
-}
-```
-
-### Model Selection
-Change the default model in the API route:
-```typescript
-const model = 'llama-3.3-70b-versatile' // or other GroqCloud models
-```
-
-## 📈 Scaling
-
-### Performance Scaling
-1. **Vertical**: Upgrade to Standard/Pro instances
-2. **Horizontal**: Multiple instances with load balancer
-3. **CDN**: Add Cloudflare for static assets
-4. **Database**: Add persistent storage
-
-### Monitoring
-- Response time monitoring
-- Error rate tracking
-- User analytics
-- Resource usage
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-#### 1. API Key Errors
 ```bash
-# Check API key is valid
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://api.groq.com/openai/v1/models
+npx supabase bootstrap
 ```
 
-#### 2. Build Errors
-```bash
-# Clean build
-rm -rf .next node_modules
-npm install
-npm run build
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
 ```
-
-#### 3. Streaming Issues
-- Check Edge Runtime is working
-- Verify CORS headers
-- Check browser console
-
-### Debug Mode
-```bash
-# Enable debug logging
-DEBUG=* npm run dev
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Make your changes
-4. Add tests
-5. Submit pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
-## 🙏 Acknowledgments
-
-- **GroqCloud** - For the amazing Llama 3.3 70B model
-- **Next.js** - For the excellent framework
-- **Tailwind CSS** - For the utility-first CSS framework
-- **Vercel** - For the hosting platform
-
----
-
-## 📞 Support
-
-- **Documentation**: [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
-- **Issues**: Create GitHub issue
-- **Email**: support@nova-agent.com
-
----
-
-🚀 **Nova Agent is ready for production!**
-
-Built with ❤️ using the latest AI technology and web development best practices.
