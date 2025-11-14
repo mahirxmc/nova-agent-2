@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: nova-agent
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: GROQ_API_KEY
+        value: your_groqcloud_api_key_here
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: your_supabase_url_here
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        value: your_supabase_anon_key_here
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        value: your_supabase_service_role_key_here
+      - key: GITHUB_TOKEN
+        value: your_github_token_here
+      - key: DATABASE_URL
+        value: file:/home/z/my-project/db/custom.db
