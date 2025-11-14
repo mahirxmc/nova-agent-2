@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ZIP Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .upload-area { 
+            border: 2px dashed #ccc; 
+            padding: 20px; 
+            text-align: center; 
+            margin: 20px 0;
+        }
+        .file-list { margin-top: 20px; }
+        .file-item { 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            margin: 5px 0; 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ZIP File Upload Test</h1>
+    
+    <div class="upload-area" id="uploadArea">
+        <p>Drag & drop ZIP files here or click to select</p>
+        <input type="file" id="fileInput" accept=".zip" multiple style="display: none;">
+    </div>
+    
+    <div class="file-list" id="fileList"></div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#007bff';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ccc';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        async function handleFiles(files) {
+            const zipFiles = Array.from(files).filter(file => 
+                file.type === 'application/zip' || 
+                file.type === 'application/x-zip-compressed' ||
+                file.name.toLowerCase().endsWith('.zip')
+            );
+
+            for (const file of zipFiles) {
+                await uploadFile(file);
+            }
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <strong>${file.name}</strong> (${formatFileSize(file.size)})
+                <div class="status">Uploading...</div>
+            `;
+            fileList.appendChild(fileItem);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const status = fileItem.querySelector('.status');
+                if (response.ok) {
+                    const result = await response.json();
+                    status.innerHTML = `✅ Success! Extracted ${result.extractedFiles} files`;
+                    status.style.color = 'green';
+                } else {
+                    throw new Error('Upload failed');
+                }
+            } catch (error) {
+                const status = fileItem.querySelector('.status');
+                status.innerHTML = `❌ Error: ${error.message}`;
+                status.style.color = 'red';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
